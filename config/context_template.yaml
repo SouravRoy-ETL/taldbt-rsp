@@ -1,0 +1,69 @@
+# =============================================================================
+# WU RSP Pipeline Config Template - All 110 Context Variables from Talend
+# Copy as config_grp{N}.yaml, override grp_number + Entry_tablename etc.
+# =============================================================================
+
+grp_no: "16"
+grp_number: "16"
+maxloopNo: 15
+
+# --- Pattern A tables (grp_number appended at runtime) ---
+Entry_stgstfile_grp: "TALENDSTAGTXNENTRYST_GRP"
+Entry_ACfiletable_grp: "TXNENTRY_ACFILE_GRP"
+acstmerge_grp: "TXNENTRY_DATA_GRP"
+entry_dup_grp: "ENTRY_STATUS_UPDATE_GRP"
+compliance_check_grp: "TALENDSTAGTXNTEMPLATE_CHECK_GRP"
+compliance_id_sql_grp: "COMP_SQLGENERATE_GRP"
+AC_Rawdata_grp: "TXNTEMPLATERAW_GRP"
+AC_Raw_mainload_grp: "TXNTEMPLATERAW_LOAD_GRP"
+Recordtype4_grp: "TALENDSTAGTXNENTRYREC4_GRP"
+ST_FILENAMES: "STFILE_NAMES_GRP"
+AC_FILENAMES: "ACFILE_NAMES_GRP"
+
+# --- Pattern B tables (overridden per group in TMC) ---
+Entry_tablename: "TXNENTRY_GRP16_SATEST"
+Adjustment_tablename: "TXNADJUSTMENT_GRP16"
+txnTemplate_main: "TXNTEMPLATE_GRP16"
+
+# --- Shared tables ---
+Sharedcost_tablename: "TXNSHAREDCOST"
+ADJUSTMENTREASON_tablename: "TXNADJUSTMENTREASON"
+ADJUSTMENTTYPE_tablename: "TXNADJUSTMENTTYPE"
+alerts_table: "EMAIL_ALERTS"
+environment_tab: "ALERT_ENVIRONMENT"
+parameter_UnifiedErrorTable: "UNIFIEDPORTAL_ERRORLOG_SETTLEMENT"
+txnCountry: "TXNCOUNTRY"
+Table_noaccount_main: "TXNNOACCOUNTAGENT"
+
+# --- File paths ---
+source_st_dir: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\ST_File\\"
+source_ac_dir: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\AC_Target\\"
+processing_st_grp: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\ST_File_grp"
+processing_ac_grp: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\AC_File_grp"
+st_parse_path_grp: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\ST_Parse_grp"
+archive_path_st: "D:\\data\\Projects\\UNIFIEDPORTAL\\Archives\\ST_Files\\"
+archive_path_ac: "D:\\data\\Projects\\UNIFIEDPORTAL\\Archives\\AC_Files\\"
+st_error_file: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\ST_Error\\"
+st_inprocess: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\ST_Inprocess\\"
+stlogs: "D:\\data\\Projects\\UNIFIEDPORTAL\\logs\\"
+outputfile: "D:\\data\\Projects\\UNIFIEDPORTAL\\Source\\AC_Output\\"
+
+# --- SMTP ---
+smtp_host: "smtpva.prod.wudip.com"
+smtp_port: 25
+
+# --- Snowflake ---
+snowflake:
+  host: "wudatadev.us-east-1.privatelink.snowflakecomputing.com"
+  account: "WUDATADEV"
+  database: "UNIFIED_PORTAL"
+  schema: "PUBLIC"
+  warehouse: "UNF_PRT_SMALL_WH"
+  user: "S_APP_UNF_PRT_DEV"
+  password: ""
+  role: "APP_DEVSNOWFLAKE_UNF_PRT_SVCACTETL"
+
+# --- DuckDB ---
+duckdb:
+  reference_db: "reference.duckdb"
+  ephemeral_dir: "runs"
