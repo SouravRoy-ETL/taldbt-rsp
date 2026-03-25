@@ -391,8 +391,8 @@ class DBTProjectGenerator:
                 dc = comp.get('db_connection', {})
                 if dc:
                     conn_map[comp_id] = {
-                        'database': dc.get('database', ''),
-                        'schema': dc.get('schema', ''),
+                        'database': self._str_val(dc.get('database', '')),
+                        'schema': self._str_val(dc.get('schema', '')),
                     }
 
             # Collect tables from tDBInput and tDBOutput
@@ -401,7 +401,7 @@ class DBTProjectGenerator:
                     sub = comp.get(key, {})
                     if not sub:
                         continue
-                    table = sub.get('table', '')
+                    table = self._str_val(sub.get('table', ''))
                     if not table:
                         continue
 
@@ -413,7 +413,7 @@ class DBTProjectGenerator:
                         continue  # Don't add to sources.yml
 
                     # Shared table → add to sources
-                    conn_ref = sub.get('connection_ref', '')
+                    conn_ref = self._str_val(sub.get('connection_ref', ''))
                     conn_info = conn_map.get(conn_ref, {})
                     db_name = conn_info.get('database', '') or 'UNKNOWN_DB'
                     schema_name = conn_info.get('schema', '') or 'PUBLIC'
@@ -986,7 +986,7 @@ class DBTProjectGenerator:
 
     def _gen_dbrow_model(self, model_name, comp, comp_id, subdir):
         """tDBRow/tSnowflakeRow: translate SQL, resolve context vars."""
-        sql = comp.get('sql_query', '')
+        sql = self._str_val(comp.get('sql_query', ''))
         if not sql:
             return
         translated = self.translator.translate_sql_for_duckdb(sql)
@@ -1001,8 +1001,8 @@ class DBTProjectGenerator:
         if not db_out:
             return
 
-        table = db_out.get('table', '')
-        action = (db_out.get('output_action', '') or db_out.get('table_action', '') or 'INSERT').upper()
+        table = self._str_val(db_out.get('table', ''))
+        action = (self._str_val(db_out.get('output_action', '')) or self._str_val(db_out.get('table_action', '')) or 'INSERT').upper()
         schema_cols = db_out.get('schema_columns', [])
         die_on_error = db_out.get('die_on_error', False)
         table_resolved = self.translator.translate_sql_for_duckdb(f'"{table}"').strip('"') if table else 'UNKNOWN'
@@ -1071,9 +1071,9 @@ class DBTProjectGenerator:
         db_in = comp.get('db_input', {})
         if not db_in:
             return
-        query = db_in.get('query', '')
-        table = db_in.get('table', '')
-        conn_ref = db_in.get('connection_ref', '')
+        query = self._str_val(db_in.get('query', ''))
+        table = self._str_val(db_in.get('table', ''))
+        conn_ref = self._str_val(db_in.get('connection_ref', ''))
 
         lines = self._model_header(model_name, 'sources',
             f"tDBInput: {comp.get('unique_name','')} from {table}")
@@ -1197,7 +1197,7 @@ class DBTProjectGenerator:
         lines.append(f"-- Filename: {fi.get('filename', '')}")
         lines.append(f"-- Separator: {fi.get('fieldseparator', '')}")
         lines.append(f"-- Encoding: {fi.get('encoding', '')}")
-        sep = fi.get('fieldseparator', ',').strip('"').replace("';'", ';')
+        sep = self._str_val(fi.get('fieldseparator', ',')).strip('"').replace("';'", ';')
         hdr = 'true' if fi.get('header', '0') != '0' else 'false'
         schema_cols = fi.get('schema_columns', [])
         if schema_cols:
@@ -1219,8 +1219,8 @@ class DBTProjectGenerator:
             return
         sources = graph.get_data_sources(comp_id)
         src_ref = self._resolve_ref(sources[0]['source']) if sources else None
-        filename = fo.get('filename', '')
-        sep = fo.get('fieldseparator', ',').strip('"')
+        filename = self._str_val(fo.get('filename', ''))
+        sep = self._str_val(fo.get('fieldseparator', ',')).strip('"')
         include_hdr = fo.get('includeheader', 'false') == 'true'
 
         lines = self._model_header(model_name, subdir,
@@ -1247,7 +1247,7 @@ class DBTProjectGenerator:
             return
         sources = graph.get_data_sources(comp_id)
         src_ref = self._resolve_ref(sources[0]['source']) if sources else None
-        field_sep = ef.get('fieldseparator', ',').strip('"')
+        field_sep = self._str_val(ef.get('fieldseparator', ',')).strip('"')
         schema_cols = ef.get('schema_columns', [])
 
         lines = self._model_header(model_name, subdir,
@@ -1275,7 +1275,7 @@ class DBTProjectGenerator:
         ff = comp.get('fixed_flow', {})
         if not ff:
             return
-        nb_rows = ff.get('nb_rows', '1')
+        nb_rows = self._str_val(ff.get('nb_rows', '1'))
         schema_cols = ff.get('schema_columns', [])
         values = ff.get('values', {})
 
@@ -1368,6 +1368,16 @@ class DBTProjectGenerator:
         return self.model_registry.get(comp_id,
                self.model_registry.get(self._safe_name(comp_id),
                self._safe_name(comp_id)))
+
+
+    def _str_val(self, val) -> str:
+        """Safely extract a string from a parsed value that might be a dict or string.
+        The xml_parser sometimes returns {'value': 'x', 'field': 'TEXT'} instead of 'x'."""
+        if val is None:
+            return ''
+        if isinstance(val, dict):
+            return str(val.get('value', ''))
+        return str(val)
 
     def _safe_name(self, name):
         return re.sub(r'[^a-zA-Z0-9_]', '_', name).lower()
